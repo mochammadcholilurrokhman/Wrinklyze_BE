@@ -1,1 +1,7 @@
 firebase_credentials.json
+__pycache__
+venv
+venv/
+venv/Lib/site-packages
+venv/Scripts
+venv/share
