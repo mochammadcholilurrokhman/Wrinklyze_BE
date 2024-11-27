@@ -16,7 +16,7 @@ app = Flask(__name__)
 # Initialize Firebase
 cred = credentials.Certificate("firebase_credentials.json")
 firebase_admin.initialize_app(cred, {
-    "storageBucket": "mobile-app-wrinklyze.appspot.com"
+    "storageBucket": "mobile-app-wrinklyze.firebasestorage.app"
 })
 
 db = firestore.client()
@@ -40,7 +40,7 @@ def upload_file():
         in_memory_file = file.read()
 
         # Convert byte data to image
-        npimg = np.fromstring(in_memory_file, np.uint8)
+        npimg = np.frombuffer(in_memory_file, np.uint8)
         img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
 
         # Preprocess the image
