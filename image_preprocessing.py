@@ -32,75 +32,49 @@ def preprocess_image(image, image_ori):
         raise ValueError("Tidak ada wajah yang terdeteksi pada gambar.")
 
     # Potong gambar sesuai area wajah yang terdeteksi
-    x, y, w, h = faces[0]  # Ambil wajah pertama yang terdeteksi
+    for (x, y, w, h) in faces:
+        # Gambar kotak di sekitar wajah
+        cv2.rectangle(image_array_ori, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+    # Konversi kembali ke PIL Image untuk resize
+    image = Image.fromarray(image_array_ori)
+    
+    # Menampilkan gambar dengan kotak deteksi wajah
+    cv2.imshow('Detected Faces', image_array_ori)
+    cv2.waitKey(0)  # Tunggu hingga tombol ditekan
+    cv2.destroyAllWindows()
+
+    # Ambil wajah pertama yang terdeteksi
+    x, y, w, h = faces[0]
     cropped_image = image_array[y:y+h, x:x+w]
     cropped_image_ori = image_array_ori[y:y+h, x:x+w]
 
     # Konversi kembali ke PIL Image untuk resize
-    image = Image.fromarray(cropped_image)
-    image_ori = Image.fromarray(cropped_image_ori)
+    # Tentukan ukuran target (misalnya, panjang sisi maksimal 224)
+    target_size = 580
 
-    # Resize gambar dengan mempertahankan aspect ratio
-    width, height = image.size
-    if height > width:
-        maxLength = height
-        if maxLength >= 6:
-            image = image.resize((int(width * 580 / height), 580))
-            image_ori = image_ori.resize((int(width * 580 / height), 580))
+    # Hitung rasio aspect gambar asli
+    height, width = cropped_image.shape[:2]
+    aspect_ratio = width / height
+
+    # Tentukan dimensi baru dengan mempertahankan aspect ratio
+    if aspect_ratio > 1:
+        # Lebar lebih besar dari tinggi (portrait)
+        new_width = target_size
+        new_height = int(target_size / aspect_ratio)
     else:
-        maxLength = width
-        if maxLength >= 6:
-            image = image.resize((580, int(height * 580 / width)))
-            image_ori = image_ori.resize((580, int(height * 580 / width)))
+        # Tinggi lebih besar atau sama dengan lebar (landscape)
+        new_height = target_size
+        new_width = int(target_size * aspect_ratio)
 
-    resized_image_array = np.array(image)
-    resized_image_array_ori = np.array(image_ori)
-
-    # Konversi ke HSV untuk clustering
-    citrahsv = cv2.cvtColor(resized_image_array, cv2.COLOR_RGB2HSV)
-    hs = citrahsv[:, :, :2].reshape(-1, 2)
-
-    # K-means clustering
-    kmeans = KMeans(n_clusters=2, random_state=0, n_init=2)
-    cluster_idx = kmeans.fit_predict(hs)
-    piksel_labels = cluster_idx.reshape(citrahsv.shape[:2])
-
-    # Pilih cluster dengan objek terbanyak
-    cluster_count = np.bincount(cluster_idx)
-    max_cluster_index = np.argmax(cluster_count)
-
-    # Segmentasi wajah
-    citra_rgb = np.copy(resized_image_array)
-    citra_rgb[piksel_labels != max_cluster_index] = 0
-    citra_gray = rgb2gray(citra_rgb)
-    level = threshold_otsu(citra_gray)
-    binary_mask = citra_gray > level
-    binary_mask = binary_mask.astype(bool)
-    binary_mask = binary_fill_holes(binary_mask)
-    binary_mask = binary_closing(binary_mask)
-    binary_mask = remove_small_holes(binary_mask, area_threshold=100)
-
-    citra_imfil = np.zeros_like(citra_rgb)
-    citra_imfil[binary_mask] = citra_rgb[binary_mask]
-
-    # Gabor filter
-    citra_imfil_gray = rgb2gray(citra_imfil)
-    citra_imfil_float = img_as_float(citra_imfil_gray)
-    thetas = np.linspace(0, np.pi, 8)
-    combined_output = np.zeros_like(citra_imfil_float, dtype=np.float32)
-
-    for theta in thetas:
-        gabor_kernel = cv2.getGaborKernel((12, 12), 2.0, theta, 10.0, 0.5, 0, ktype=cv2.CV_32F)
-        gabor_output = cv2.filter2D(citra_imfil_float.astype(np.float32), cv2.CV_32F, gabor_kernel)
-        combined_output += gabor_output
-
-    combined_output = cv2.normalize(combined_output, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
-    combined_output_enhanced = cv2.equalizeHist((combined_output * 255).astype(np.uint8))
-
-    cv2.imshow('Preproccess', combined_output_enhanced)
+    # Resize gambar dengan ukuran yang dihitung
+    resized_face = cv2.resize(cropped_image, (new_width, new_height))
+    resized_face_asli = cv2.resize(cropped_image_ori, (new_width, new_height))
+    
+    cv2.imshow('Resized Face', resized_face)
     cv2.waitKey(0)  # Tunggu hingga tombol ditekan
     cv2.destroyAllWindows()
-    cv2.imshow('Preproccess ori', resized_image_array_ori)
+    cv2.imshow('Resized Face Asli', resized_face_asli)
     cv2.waitKey(0)  # Tunggu hingga tombol ditekan
     cv2.destroyAllWindows()
-    return combined_output_enhanced, resized_image_array_ori
+    return resized_face.astype(np.uint8), resized_face_asli.astype(np.uint8)

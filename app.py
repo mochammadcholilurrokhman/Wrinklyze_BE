@@ -45,7 +45,7 @@ def upload_file():
 
         # Preprocess the image
         processed_image, image_ori = preprocess_image(img, img)
-
+        
         # Extract features from the image
         fitur = feature_extraction(processed_image, image_ori)
 
