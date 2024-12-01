@@ -121,7 +121,7 @@ def feature_extraction(resized_face, resized_face_asli):
         area1_dahi = np.array([blob.area for blob in blob_measurements])
 
         # Filter untuk blob dengan area lebih dari 100
-        index_blob = np.where(area1_dahi > 50)[0]
+        index_blob = np.where(area1_dahi > 85)[0]
         ambil_blob = np.isin(bw_canny, index_blob + 1)
 
         # Blob yang tersaring
@@ -136,12 +136,13 @@ def feature_extraction(resized_face, resized_face_asli):
         std_area = np.std(area2_dahi)
 
         # Filter untuk area yang lebih kecil dari 200
-        index_area = np.where(area2_dahi < 150)[0]
+        index_area = np.where(area2_dahi < 100)[0]
         ambil_area_dahi = np.isin(labeled_blob_canny_dahi, index_area + 1)
 
         # Blob hasil filter kedua
         blob_bw_final = ambil_area_dahi > 0
         label_area_bw_dahi, number_area_bw = label(blob_bw_final, connectivity=2, return_num=True)
+
 
         # ==================== Canny Sisi Tengah ==================== #
 
@@ -160,7 +161,7 @@ def feature_extraction(resized_face, resized_face_asli):
         area1_sisi_tengah = np.array([blob.area for blob in blob_measurements])
 
         # Filter untuk blob dengan area lebih dari 50
-        index_blob = np.where(area1_sisi_tengah > 20)[0]
+        index_blob = np.where(area1_sisi_tengah > 30)[0]
         ambil_blob = np.isin(bw_sisi_t, index_blob + 1)  # `+1` karena label mulai dari 1
 
         # Blob yang tersaring
@@ -172,14 +173,14 @@ def feature_extraction(resized_face, resized_face_asli):
         area2_bt = np.array([blob.area for blob in blob_measurements_area])
 
         # Filter untuk area yang lebih kecil dari 30
-        index_area = np.where(area2_bt < 30)[0]
+        index_area = np.where(area2_bt < 40)[0]
         ambil_area_tengah = np.isin(labeled_blob_canny_sisi_tengah, index_area + 1)
 
         # Blob hasil filter kedua
         blob_bw_final = ambil_area_tengah > 0
         label_area_bw_tengah, number_area_bw = label(blob_bw_final, connectivity=2, return_num=True)
 
-                # ==================== Canny Sisi Mata ==================== #
+        # ==================== Canny Sisi Mata ==================== #
         # 1. Canny untuk sisi mata kiri dan kanan
         blurred_mata_kiri = cv2.GaussianBlur(citraMataKr, (5, 5), 0)
         blurred_mata_kanan = cv2.GaussianBlur(citraMataKn, (5, 5), 0)
@@ -197,7 +198,7 @@ def feature_extraction(resized_face, resized_face_asli):
         area1_mata_kiri = np.array([blob.area for blob in blob_measurements_kiri])
 
         # Filter untuk blob dengan area lebih dari 50
-        index_blob_kiri = np.where(area1_mata_kiri > 1)[0]
+        index_blob_kiri = np.where(area1_mata_kiri > 80)[0]
         ambil_blob_kiri = np.isin(bw_canny_mata_kiri, index_blob_kiri + 1)
 
         # Blob yang tersaring untuk mata kiri
@@ -209,7 +210,7 @@ def feature_extraction(resized_face, resized_face_asli):
         area1_mata_kanan = np.array([blob.area for blob in blob_measurements_kanan])
 
         # Filter untuk blob dengan area lebih dari 50
-        index_blob_kanan = np.where(area1_mata_kanan > 1)[0]
+        index_blob_kanan = np.where(area1_mata_kanan > 40)[0]
         ambil_blob_kanan = np.isin(bw_canny_mata_kanan, index_blob_kanan + 1)
 
         # Blob yang tersaring untuk mata kanan
@@ -222,7 +223,7 @@ def feature_extraction(resized_face, resized_face_asli):
         area2_mata_kiri = np.array([blob.area for blob in blob_measurements_area_kiri])
 
         # Filter untuk area yang lebih kecil dari 30
-        index_blob_area_kiri = np.where(area2_mata_kiri < 50)[0]
+        index_blob_area_kiri = np.where(area2_mata_kiri < 170)[0]
         ambil_blob_area_kiri = np.isin(labeled_blob_canny_mata_kiri, index_blob_area_kiri + 1)
 
         # Blob hasil filter kedua untuk mata kiri
@@ -234,7 +235,7 @@ def feature_extraction(resized_face, resized_face_asli):
         area2_mata_kanan = np.array([blob.area for blob in blob_measurements_area_kanan])
 
         # Filter untuk area yang lebih kecil dari 30
-        index_blob_area_kanan = np.where(area2_mata_kanan < 50)[0]
+        index_blob_area_kanan = np.where(area2_mata_kanan < 120)[0]
         ambil_blob_area_kanan = np.isin(labeled_blob_canny_mata_kanan, index_blob_area_kanan + 1)
 
         # Blob hasil filter kedua untuk mata kanan
@@ -260,7 +261,7 @@ def feature_extraction(resized_face, resized_face_asli):
         area1_kantung_kiri = np.array([blob.area for blob in blob_measurements_kiri])
 
         # Filter untuk blob dengan area lebih dari 35
-        index_blob_kiri = np.where(area1_kantung_kiri > 20)[0]
+        index_blob_kiri = np.where(area1_kantung_kiri > 55)[0]
         ambil_blob_kiri = np.isin(bw_canny_kantung_kiri, index_blob_kiri + 1)
 
         # Blob yang tersaring untuk kantung kiri
@@ -271,7 +272,7 @@ def feature_extraction(resized_face, resized_face_asli):
         blob_measurements_area_kiri = regionprops(labeled_blob_canny_kantung_kiri)
         area2_kantung_kiri = np.array([blob.area for blob in blob_measurements_area_kiri])
 
-        index_blob_area_kiri = np.where(area2_kantung_kiri < 0)[0]
+        index_blob_area_kiri = np.where(area2_kantung_kiri < 125)[0]
         ambil_blob_area_kiri = np.isin(labeled_blob_canny_kantung_kiri, index_blob_area_kiri + 1)
 
         blob_bw_final_kiri = ambil_blob_area_kiri > 0
@@ -292,7 +293,7 @@ def feature_extraction(resized_face, resized_face_asli):
         blob_measurements_area_kanan = regionprops(labeled_blob_canny_kantung_kanan)
         area2_kantung_kanan = np.array([blob.area for blob in blob_measurements_area_kanan])
 
-        index_blob_area_kanan = np.where(area2_kantung_kanan < 70)[0]
+        index_blob_area_kanan = np.where(area2_kantung_kanan < 100)[0]
         ambil_blob_area_kanan = np.isin(labeled_blob_canny_kantung_kanan, index_blob_area_kanan + 1)
 
         blob_bw_final_area_kanan = ambil_blob_area_kanan > 0
