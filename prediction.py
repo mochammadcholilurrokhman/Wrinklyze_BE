@@ -32,13 +32,6 @@ def prediction(image_results):
             'pixel_count_label_kantung_kiri': [image_results['pixel_count_label_kantung_kiri']],
             'pixel_count_label_kantung_kanan': [image_results['pixel_count_label_kantung_kanan']],
             'total_pixel_count': [image_results['total_pixel_count']],
-            'pixel_density': [image_results['pixel_density']],
-            'entropy_value': [image_results['entropy_value']],
-            'fractal_dimension': [image_results['fractal_dimension']],
-            'gradient_magnitude': [image_results['gradient_magnitude']],
-            'hog_features': [image_results['hog_features']],
-            'skewness_value': [image_results['skewness_value']],
-            'kurtosis_value': [image_results['kurtosis_value']]
         })
 
         # Transformasi data dengan scaler

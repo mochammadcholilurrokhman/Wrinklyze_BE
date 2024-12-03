@@ -104,7 +104,6 @@ def feature_extraction(resized_face, resized_face_asli):
         citraKantungKn = np.zeros_like(resized_face, dtype=np.float32)
         citraKantungKn[top:bottom, left:right] = resized_face[top:bottom, left:right]
 
-        # Asumsikan citraDahi sudah didefinisikan
         # ==================== Canny Dahi ==================== #
         # 1. Deteksi tepi menggunakan Canny
         blurred_dahi = cv2.GaussianBlur(citraDahi, (5, 5), 0)
@@ -143,9 +142,7 @@ def feature_extraction(resized_face, resized_face_asli):
         blob_bw_final = ambil_area_dahi > 0
         label_area_bw_dahi, number_area_bw = label(blob_bw_final, connectivity=2, return_num=True)
 
-
         # ==================== Canny Sisi Tengah ==================== #
-
         blurred_tengah = cv2.GaussianBlur(citraMataT, (5, 5), 0)
 
         # 1. Canny Sisi Tengah
@@ -179,7 +176,7 @@ def feature_extraction(resized_face, resized_face_asli):
         # Blob hasil filter kedua
         blob_bw_final = ambil_area_tengah > 0
         label_area_bw_tengah, number_area_bw = label(blob_bw_final, connectivity=2, return_num=True)
-
+        
         # ==================== Canny Sisi Mata ==================== #
         # 1. Canny untuk sisi mata kiri dan kanan
         blurred_mata_kiri = cv2.GaussianBlur(citraMataKr, (5, 5), 0)
@@ -198,7 +195,7 @@ def feature_extraction(resized_face, resized_face_asli):
         area1_mata_kiri = np.array([blob.area for blob in blob_measurements_kiri])
 
         # Filter untuk blob dengan area lebih dari 50
-        index_blob_kiri = np.where(area1_mata_kiri > 80)[0]
+        index_blob_kiri = np.where(area1_mata_kiri > 1)[0]
         ambil_blob_kiri = np.isin(bw_canny_mata_kiri, index_blob_kiri + 1)
 
         # Blob yang tersaring untuk mata kiri
@@ -210,7 +207,7 @@ def feature_extraction(resized_face, resized_face_asli):
         area1_mata_kanan = np.array([blob.area for blob in blob_measurements_kanan])
 
         # Filter untuk blob dengan area lebih dari 50
-        index_blob_kanan = np.where(area1_mata_kanan > 40)[0]
+        index_blob_kanan = np.where(area1_mata_kanan > 1)[0]
         ambil_blob_kanan = np.isin(bw_canny_mata_kanan, index_blob_kanan + 1)
 
         # Blob yang tersaring untuk mata kanan
@@ -223,7 +220,7 @@ def feature_extraction(resized_face, resized_face_asli):
         area2_mata_kiri = np.array([blob.area for blob in blob_measurements_area_kiri])
 
         # Filter untuk area yang lebih kecil dari 30
-        index_blob_area_kiri = np.where(area2_mata_kiri < 170)[0]
+        index_blob_area_kiri = np.where(area2_mata_kiri < 50)[0]
         ambil_blob_area_kiri = np.isin(labeled_blob_canny_mata_kiri, index_blob_area_kiri + 1)
 
         # Blob hasil filter kedua untuk mata kiri
@@ -235,7 +232,7 @@ def feature_extraction(resized_face, resized_face_asli):
         area2_mata_kanan = np.array([blob.area for blob in blob_measurements_area_kanan])
 
         # Filter untuk area yang lebih kecil dari 30
-        index_blob_area_kanan = np.where(area2_mata_kanan < 120)[0]
+        index_blob_area_kanan = np.where(area2_mata_kanan < 50)[0]
         ambil_blob_area_kanan = np.isin(labeled_blob_canny_mata_kanan, index_blob_area_kanan + 1)
 
         # Blob hasil filter kedua untuk mata kanan
@@ -299,6 +296,7 @@ def feature_extraction(resized_face, resized_face_asli):
         blob_bw_final_area_kanan = ambil_blob_area_kanan > 0
         labeled_bw2_kantung_kanan, number_of_blobs_kanan = label(blob_bw_final_area_kanan, connectivity=2, return_num=True)
 
+
         # Pastikan citra asli dan hasil segmentasi diinisialisasi dengan benar
         hasil = resized_face_asli.copy()  # Salin citra asli untuk hasil marking
 
@@ -312,7 +310,6 @@ def feature_extraction(resized_face, resized_face_asli):
         ]
 
         pixel_counts = []
-        image_features = []
 
         # Loop untuk menandai area yang sesuai pada citra hasil
         for image_idx, label in enumerate(labels_to_mark):
@@ -332,30 +329,6 @@ def feature_extraction(resized_face, resized_face_asli):
         # Menghitung total piksel bertanda untuk semua label
         total_pixel_count = sum(pixel_counts)
 
-        # Menghitung kepadatan piksel kerutan (total piksel bertanda dibagi total piksel area)
-        pixel_density = total_pixel_count / (bar * kol)
-
-        # Fitur tambahan untuk mendeteksi kerutan
-        entropy_value = -np.sum(np.log2(np.histogram(hasil.flatten(), bins=256)[0] + 1e-5))
-
-        # Fractal dimension (perhitungan kasar, dapat disesuaikan lebih lanjut)
-        fractal_dimension = np.sum(np.abs(np.diff(hasil, axis=0)))
-
-        # Menghitung gradien citra di kedua dimensi
-        gradient_x = np.gradient(hasil, axis=1)  # Gradien di arah horizontal
-        gradient_y = np.gradient(hasil, axis=0)  # Gradien di arah vertikal
-
-        # Menghitung magnitudo gradien
-        gradient_magnitude = np.mean(np.sqrt(gradient_x ** 2 + gradient_y ** 2))
-
-        # Menghitung HOG (Histogram of Oriented Gradients) features
-        hog_descriptor = cv2.HOGDescriptor()
-        hog_features = hog_descriptor.compute(hasil)
-
-        # Menghitung skewness dan kurtosis dari hasil gambar
-        skewness_value = skew(hasil.flatten())
-        kurtosis_value = kurtosis(hasil.flatten())
-
         image_results = {
             'image_idx': image_idx,
             'pixel_count_label_dahi': pixel_counts[0],
@@ -365,13 +338,6 @@ def feature_extraction(resized_face, resized_face_asli):
             'pixel_count_label_kantung_kiri': pixel_counts[4],
             'pixel_count_label_kantung_kanan': pixel_counts[5],
             'total_pixel_count': total_pixel_count,
-            'pixel_density': pixel_density,
-            'entropy_value': entropy_value,
-            'fractal_dimension': fractal_dimension,
-            'gradient_magnitude': gradient_magnitude,
-            'hog_features': np.mean(hog_features),
-            'skewness_value': skewness_value,
-            'kurtosis_value': kurtosis_value
         }
 
 
