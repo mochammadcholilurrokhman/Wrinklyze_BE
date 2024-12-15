@@ -1,23 +1,7 @@
 def preprocess_image(image, image_ori):
     import numpy as np
-    from PIL import Image
-    from sklearn.cluster import KMeans
-    from skimage.color import rgb2gray
-    from skimage.filters import threshold_otsu
-    from skimage.morphology import binary_closing, remove_small_holes
-    from scipy.ndimage import binary_fill_holes
     import cv2
-    from skimage import img_as_float
-
-    # Jika input adalah NumPy array, konversi ke PIL Image
-    if isinstance(image, np.ndarray):
-        image = Image.fromarray(image)
-
-    # Konversi gambar ke array untuk proses deteksi
-    image_array = np.array(image)
-    if isinstance(image_ori, np.ndarray):
-        image_ori = Image.fromarray(image_ori)
-
+    from PIL import Image
     # Konversi gambar ke array untuk proses deteksi
     image_array = np.array(image)
     image_array_ori = np.array(image_ori)
@@ -29,7 +13,7 @@ def preprocess_image(image, image_ori):
 
     # Jika tidak ada wajah terdeteksi, kembalikan erropython r
     if len(faces) == 0:
-        raise ValueError("Tidak ada wajah yang terdeteksi pada gambar.")
+        raise ValueError("No face detected. Please try again.")
 
     # Potong gambar sesuai area wajah yang terdeteksi
     for (x, y, w, h) in faces:
@@ -51,7 +35,36 @@ def preprocess_image(image, image_ori):
 
     # Konversi kembali ke PIL Image untuk resize
     # Tentukan ukuran target (misalnya, panjang sisi maksimal 224)
+    # Tentukan target size
     target_size = 580
+
+    # Hitung rasio aspect gambar asli
+    height, width = cropped_image.shape[:2]
+    aspect_ratio = width / height
+
+    # Tentukan dimensi baru dengan mempertahankan aspect ratio
+    if aspect_ratio > 1:
+        # Lebar lebih besar dari tinggi (landscape)
+        new_width = target_size
+        new_height = int(target_size / aspect_ratio)
+    else:
+        # Tinggi lebih besar atau sama dengan lebar (portrait)
+        new_height = target_size
+        new_width = int(target_size * aspect_ratio)
+
+    # Resize gambar dengan ukuran yang dihitung
+    resized_face = cv2.resize(cropped_image, (new_width, new_height))
+    resized_face_asli = cv2.resize(cropped_image_ori, (new_width, new_height))
+
+    # Buat canvas 580x580 dan letakkan gambar yang sudah diresize di tengahnya
+    canvas = np.zeros((target_size, target_size, 3), dtype=np.uint8)
+    y_offset = (target_size - new_height) // 2
+    x_offset = (target_size - new_width) // 2
+
+    # Tempelkan gambar di tengah canvas
+    canvas[y_offset:y_offset+new_height, x_offset:x_offset+new_width] = resized_face
+    canvas_ori = np.zeros((target_size, target_size, 3), dtype=np.uint8)
+    canvas_ori[y_offset:y_offset+new_height, x_offset:x_offset+new_width] = resized_face_asli
 
     # Hitung rasio aspect gambar asli
     height, width = cropped_image.shape[:2]

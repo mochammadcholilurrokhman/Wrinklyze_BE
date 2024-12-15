@@ -2,17 +2,7 @@
 
 def prediction(image_results):
     import joblib
-    import numpy as np
     import pandas as pd
-    from sklearn.preprocessing import StandardScaler
-    from PIL import Image
-    from sklearn.cluster import KMeans
-    from skimage.color import rgb2gray
-    from skimage.filters import threshold_otsu
-    from skimage.morphology import binary_closing, remove_small_holes
-    from scipy.ndimage import binary_fill_holes
-    import cv2
-    from skimage import img_as_float
 
     try:
         # Memuat model dari file

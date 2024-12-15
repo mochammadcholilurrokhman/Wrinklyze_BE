@@ -2,22 +2,13 @@
 
 def feature_extraction(resized_face, resized_face_asli):
     import numpy as np
-    import matplotlib
     import matplotlib.pyplot as plt
-    from PIL import Image
-    from sklearn.cluster import KMeans
-    from skimage.color import rgb2gray
-    from skimage.filters import threshold_otsu
-    from skimage.morphology import binary_closing, remove_small_holes
-    from scipy.ndimage import binary_fill_holes
     from skimage.feature import canny
     from skimage.measure import label, regionprops
-    from skimage.morphology import remove_small_objects
     import cv2
-    from skimage import img_as_float
-    from scipy.stats import kurtosis, skew
     import dlib
     from imutils import face_utils
+
     # Load the image
     # Initialize dlib's face detector and create a facial landmark predictor
     detector = dlib.get_frontal_face_detector()
@@ -339,7 +330,6 @@ def feature_extraction(resized_face, resized_face_asli):
             'pixel_count_label_kantung_kanan': pixel_counts[5],
             'total_pixel_count': total_pixel_count,
         }
-
 
         # Ubah citra hasil menjadi tipe uint8 untuk ditampilkan
         hasil = hasil.astype(np.uint8)
