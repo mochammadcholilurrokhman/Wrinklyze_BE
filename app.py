@@ -48,7 +48,12 @@ def upload_file():
         if img is None:
             return jsonify({"error": "Failed to read the image."}), 400
 
-        processed_image, image_ori = preprocess_image(img, img)
+        # Call preprocess_image and handle potential ValueError
+        try:
+            processed_image, image_ori = preprocess_image(img, img)
+        except ValueError as e:
+            return jsonify({"error": str(e), "face_detected": False}), 400  # Return error if no face is detected
+
         date = datetime.now()
         formatted_datetime = date.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -58,12 +63,14 @@ def upload_file():
         # Make a prediction
         prediksi_result = prediction(fitur)
         title = f"Wrinklyze {formatted_datetime}"
+        
         # Return prediction result in JSON format
         response = {
             "prediction": prediksi_result["prediction"],
             "confidence": prediksi_result["confidence"],
             "probabilities": prediksi_result["probabilities"],
-            "title": title
+            "title": title,
+            "face_detected": True  # Indicate that a face was detected
         }
 
         return jsonify(response), 200
@@ -78,6 +85,7 @@ if __name__ == '__main__':
         os.makedirs('./uploads')
     
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 # import joblib
